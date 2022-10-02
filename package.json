@@ -1,0 +1,19 @@
+{
+  "name": "vpvs-bot",
+  "version": "1.0.0",
+  "description": "Телеграм бот для моніторингу рішень Великої Палати Верховного Суду",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tomaswest/VPVS-bot.git"
+  },
+  "author": "Dmytro Shepeliuk",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tomaswest/VPVS-bot/issues"
+  },
+  "homepage": "https://github.com/tomaswest/VPVS-bot#readme"
+}
