@@ -19,6 +19,7 @@ const main = async () => {
   let db = await new sqlite3.Database('main.db', sqlite3.OPEN_READWRITE, (err) => {
     if (err) {
       console.error(err.message);
+      return
     }
     console.log('Connected to main database.');
   });
@@ -29,6 +30,7 @@ const main = async () => {
              FROM decisions`, (err, row) => {
       if (err) {
         console.error(err.message);
+        return
       }
       //console.log(row);
       ids = row.map(a => a.id);
