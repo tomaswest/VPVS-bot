@@ -6,7 +6,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 const sqlite3 = require('sqlite3').verbose();
 require('log-timestamp');
 
-//bot.start((ctx) => ctx.reply('Доброго дня. Додайте цього бота на Ваш канал, для того щоб отримувати повідомлення про нові постанови Великої Палати Верховного Суду'));
+bot.start((ctx) => ctx.reply('Доброго дня. Додайте цього бота на Ваш канал, для того щоб отримувати повідомлення про нові постанови Великої Палати Верховного Суду'));
 
 bot.launch();
 console.log('Bot started')
@@ -16,16 +16,26 @@ console.log('Bot started')
 const main = async () => {
 
   //CONNECT TO SQL
-  let db = await new sqlite3.Database('main.db', sqlite3.OPEN_READWRITE, (err) => {
+  let db = await new sqlite3.Database(process.env.SQLITE_URI, (err) => {
     if (err) {
-      console.error(err.message);
+      console.error(err.message + process.env.SQLITE_URI);
       return
     }
     console.log('Connected to main database.');
   });
+  //Check if it is first run or not
+  let firstRun = false
+  await db.get(`SELECT name FROM sqlite_master WHERE type='table' AND name=?`, 'decisions', (err, row) => {
+    //console.log(row)
+    if ( row === undefined ) { 
+      console.log('This is our first run, so we are just fill the database')
+      firstRun = true
+    }
+});
+ 
   let ids = [];
   await db.serialize(() => {
-    //db.run('CREATE TABLE decision(id)'); 
+     db.run(`CREATE TABLE IF NOT EXISTS "decisions" ("id"	TEXT NOT NULL UNIQUE, PRIMARY KEY("id"))`); 
      db.all(`SELECT id as id
              FROM decisions`, (err, row) => {
       if (err) {
@@ -41,7 +51,14 @@ const main = async () => {
         const browser = await puppeteer.launch({
           headless: true,
           ignoreHTTPSErrors: true,
-          args: [`--lang=en-GB`],
+          args: [`--lang=en-GB`,
+          '--disable-gpu',
+          '--disable-dev-shm-usage',
+          '--disable-setuid-sandbox',
+          '--no-first-run',
+          '--no-sandbox',
+          '--no-zygote',
+          '--single-process'],
           defaultViewport: {
             width: 1100,
             height: 900,
@@ -102,7 +119,8 @@ try {
               //console.log('Found ' + id)
               continue
             }
-            await page.waitForTimeout(10000)
+            if (!firstRun)
+            {await page.waitForTimeout(10000)
             let newPage = await clickAndWaitForTarget(x, page, browser);
             await newPage.waitForSelector("#btnPrint")
             await newPage.click("#btnPrint")
@@ -140,6 +158,7 @@ try {
               )
               
             await newPage.close()
+          }
            //console.log(`Adding ${id} to database`);
             await db.run(`INSERT INTO decisions(id) VALUES(?)`, [id], function(err) {
               if (err) {
