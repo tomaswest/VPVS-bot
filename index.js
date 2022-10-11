@@ -170,3 +170,11 @@ setInterval(() => {
 // Enable graceful stop
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
+
+// Telegram things
+process.on('unhandledRejection', (error) => {
+  console.error(error)
+})
+process.on('uncaughtException', (error) => {
+  console.error(error)
+})
