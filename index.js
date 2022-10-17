@@ -6,7 +6,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 const sqlite3 = require('sqlite3').verbose();
 require('log-timestamp');
 
-bot.start((ctx) => ctx.reply('Доброго дня. Додайте цього бота на Ваш канал, для того щоб отримувати повідомлення про нові постанови Великої Палати Верховного Суду'));
+//bot.start((ctx) => ctx.reply('Доброго дня. Додайте цього бота на Ваш канал, для того щоб отримувати повідомлення про нові постанови Великої Палати Верховного Суду'));
 
 bot.launch();
 console.log('Bot started')
@@ -124,6 +124,7 @@ try {
             let newPage = await clickAndWaitForTarget(x, page, browser);
             await newPage.waitForSelector("#btnPrint")
             await newPage.click("#btnPrint")
+            await newPage.waitForTimeout(1000)
             let allBodyText = await newPage.$eval('body', el => el.innerText);
             let shortTags = ['(скорочене)', '(скорочена)', '(вступна та резолютивна частини)']
             if (shortTags.some(v => allBodyText.includes(v))) {
@@ -143,15 +144,15 @@ try {
             
            
             let pdf = await newPage.pdf()
-            await bot.telegram.sendDocument('@velyka_palata', { source: pdf, filename: `${id}.pdf`,}, 
+            await bot.telegram.sendDocument(process.env.BOT_CHAT, { source: pdf, filename: `${id}.pdf`,}, 
               {
                    caption: `Постанова від ${caseDate} у справі №${caseNumber}`,
                    protect_content: 'false',
                    parse_mode: 'html',
                    reply_markup: {
                     inline_keyboard: [
-                     
-                    ]
+                      [{ text: '✅ ЄДРСР', url: `https://reyestr.court.gov.ua/Review/${id}` }]
+                      ]
                   }
                 }
                   
@@ -185,7 +186,7 @@ main()
 setInterval(() => {
     console.log('PARSE started')
     main()
-  }, 3600000)
+  }, 10800000)
 // Enable graceful stop
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
